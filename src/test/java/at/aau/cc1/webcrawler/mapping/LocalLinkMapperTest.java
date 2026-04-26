@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class LocalLinkMapperTest {
     private final TestingLinkTranslator linkTranslator = new TestingLinkTranslator();
@@ -30,10 +31,12 @@ public class LocalLinkMapperTest {
         Map<String, String> mapping = linkMapper.findAndReplaceLinks(document, "/test/");
         assertEquals(3, mapping.size());
         assertCorrectMapping(mapping);
-
-        assertEquals("../assets/style.css", document.select("link[rel=stylesheet]").first().attr("href"));
-        assertEquals("../assets/script.js", document.select("script[src]").first().attr("src"));
-        assertEquals("../favicon.ico", document.select("link[rel=icon]").first().attr("href"));
+        assertCorrectElement(document.select("link[rel=stylesheet]").first(),
+                "href", "../assets/style.css");
+        assertCorrectElement(document.select("script[src]").first(),
+                "src", "../assets/script.js");
+        assertCorrectElement(document.select("link[rel=icon]").first(),
+                "href", "../favicon.ico");
     }
 
     @Test
@@ -47,21 +50,18 @@ public class LocalLinkMapperTest {
         Map<String, String> mapping = linkMapper.findAndReplaceLinks(document, "/test/");
         assertEquals(4, mapping.size());
         assertCorrectMapping(mapping);
-
-        Element link = document.select("a[href]").first();
-        Element image = document.select("img[src]").first();
-        Element video = document.select("video > source").first();
-        Element audio = document.select("audio > source").first();
-
-        assertEquals("../otherPage.html", link.attr("href"));
-        assertEquals("../media/image.jpg", image.attr("src"));
-        assertEquals("../media/video.mp4", video.attr("src"));
-        assertEquals("../media/audio.mp3", audio.attr("src"));
-
-        assertEquals("_blank", link.attr("target"));
-        assertEquals("testImage", image.attr("alt"));
-        assertEquals("video/mp4", video.attr("type"));
-        assertEquals("audio/mpeg", audio.attr("type"));
+        assertCorrectElement(document.select("a[href]").first(),
+                "href", "../otherPage.html",
+                "target", "_blank");
+        assertCorrectElement(document.select("img[src]").first(),
+                "src", "../media/image.jpg",
+                "alt", "testImage");
+        assertCorrectElement(document.select("video > source").first(),
+                "src", "../media/video.mp4",
+                "type", "video/mp4");
+        assertCorrectElement(document.select("audio > source").first(),
+                "src", "../media/audio.mp3",
+                "type", "audio/mpeg");
     }
 
     @Test
@@ -73,12 +73,25 @@ public class LocalLinkMapperTest {
         assertEquals(1, mapping.size());
         assertCorrectMapping(mapping);
 
-        assertEquals("../index.html", document.select("#linkRoot").first().attr("href"));
-        assertEquals("https://example.com/", document.select("#linkForeign").first().attr("href"));
+        assertCorrectElement(document.select("#linkRoot").first(),
+                "href", "../index.html");
+        assertCorrectElement(document.select("#linkForeign").first(),
+                "href", "https://example.com/");
     }
+
     private Document loadDocument(String path) throws Exception {
         InputStream stream = getClass().getResourceAsStream(path);
         return Jsoup.parse(stream, "UTF-8", "https://example.org/");
+    }
+
+    private void assertCorrectElement(Element element, String... attributes) {
+        if (attributes.length % 2 != 0) throw new IllegalArgumentException("attributes must be even");
+        assertNotNull(element);
+        for (int i = 0; i < attributes.length; i += 2) {
+            String attribute = element.attr(attributes[i]);
+            String expectedValue = attributes[i + 1];
+            assertEquals(expectedValue, attribute);
+        }
     }
 
     private void assertCorrectMapping(Map<String, String> mapping) {
