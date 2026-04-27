@@ -31,7 +31,7 @@ public class AppRunner {
         URL url = getCrawledUrl(commandConfig);
 
         File outputDirectory = new File(commandConfig.getOutputDirectory());
-        File contentRoot = new File(outputDirectory, url.getProtocol() + "_" + url.getHost() + "_" + url.getPort());
+        File contentRoot = new File(outputDirectory, url.getProtocol() + "_" + url.getAuthority());
 
         WebCrawler crawler = makeWebCrawler(commandConfig, outputDirectory, url);
         try {
