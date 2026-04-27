@@ -33,6 +33,8 @@ public class LocalLinkMapper implements LinkMapper {
                 if (localPath != null) {
                     element.attr(attributeName, localPath);
                     linkMapping.put(link, localPath);
+                } else {
+                    linkMapping.put(link, null);
                 }
             } catch (MalformedURLException e) {
                 System.err.println("Can't find local path for link: " + link);

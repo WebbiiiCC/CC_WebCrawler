@@ -1,16 +1,14 @@
 package at.aau.cc1.webcrawler.mapping;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.InputStream;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static at.aau.cc1.webcrawler.DocumentInclusion.loadDocument;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class LocalLinkMapperTest {
     private final TestingLinkTranslator linkTranslator = new TestingLinkTranslator();
@@ -27,7 +25,7 @@ public class LocalLinkMapperTest {
                 .map("/assets/script.js", "../assets/script.js")
                 .map("/favicon.ico", "../favicon.ico");
 
-        Document document = loadDocument("headLinkReplacement.html");
+        Document document = loadDocument(this, "headLinkReplacement.html");
         Map<String, String> mapping = linkMapper.findAndReplaceLinks(document, "/test/");
         assertEquals(3, mapping.size());
         assertCorrectMapping(mapping);
@@ -46,7 +44,7 @@ public class LocalLinkMapperTest {
                 .map("/media/video.mp4", "../media/video.mp4")
                 .map("/media/audio.mp3",  "../media/audio.mp3");
 
-        Document document = loadDocument("bodyLinkReplacement.html");
+        Document document = loadDocument(this, "bodyLinkReplacement.html");
         Map<String, String> mapping = linkMapper.findAndReplaceLinks(document, "/test/");
         assertEquals(4, mapping.size());
         assertCorrectMapping(mapping);
@@ -68,20 +66,17 @@ public class LocalLinkMapperTest {
     public void testForeignLinkAvoidance() throws Exception {
         linkTranslator.map("/", "../index.html");
 
-        Document document = loadDocument("foreignLinkAvoidance.html");
+        Document document = loadDocument(this, "foreignLinkAvoidance.html");
         Map<String, String> mapping = linkMapper.findAndReplaceLinks(document, "/test/");
-        assertEquals(1, mapping.size());
+        assertEquals(2, mapping.size());
+        assertTrue(mapping.containsKey("https://example.com/"));
+        assertNull(mapping.remove("https://example.com/"));
         assertCorrectMapping(mapping);
 
         assertCorrectElement(document.select("#linkRoot").first(),
                 "href", "../index.html");
         assertCorrectElement(document.select("#linkForeign").first(),
                 "href", "https://example.com/");
-    }
-
-    private Document loadDocument(String path) throws Exception {
-        InputStream stream = getClass().getResourceAsStream(path);
-        return Jsoup.parse(stream, "UTF-8", "https://example.org/");
     }
 
     private void assertCorrectElement(Element element, String... attributes) {

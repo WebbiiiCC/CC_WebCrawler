@@ -2,6 +2,7 @@ package at.aau.cc1.webcrawler.crawl;
 
 import at.aau.cc1.webcrawler.fetch.DocumentFetcher;
 import at.aau.cc1.webcrawler.mapping.LinkMapper;
+import at.aau.cc1.webcrawler.report.ReportLogger;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.HttpStatusException;
 import org.jsoup.nodes.Document;
@@ -15,6 +16,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class WebCrawler {
     private final DocumentFetcher documentFetcher;
+    private final ReportLogger reportLogger;
     private final LinkMapper linkMapper;
     private final String baseUrl;
 
@@ -22,32 +24,40 @@ public class WebCrawler {
         validateWebPath(webPath);
         createAndValidateContentRoot(contentRoot);
 
+        reportLogger.beginSection("Crawl: " + baseUrl + webPath, 1);
+
         Queue<DownloadTask> tasks = new LinkedList<>();
         tasks.add(getInitialDownloadTask(webPath, contentRoot));
         do {
             DownloadTask task = tasks.poll();
             if (task.depth() > maxDepth) {
-                System.err.println("Skipping download task for " + task.webPath() + " because the max depth of " + maxDepth + " has been reached");
+                reportLogger.log("Skipping download of " + task.webPath() + " because the max depth of " + maxDepth + " has been reached");
                 continue;
             }
 
             List<DownloadTask> newTasks = handleDownloadTask(task, contentRoot);
             tasks.addAll(newTasks);
         } while (!tasks.isEmpty());
+
+        reportLogger.finish();
     }
 
     private List<DownloadTask> handleDownloadTask(DownloadTask task, File contentRoot) throws IOException {
         File localDestination = task.localDestination();
         if (localDestination.exists()) {
-            //This page is already downloaded
+            reportLogger.log("Skipping download of " + task.webPath() + " because it was already downloaded before");
             return List.of();
         }
+
+        reportLogger.beginSection(task.webPath(), task.depth() + 2);
+        reportLogger.log("Depth: " + task.depth());
 
         Document document;
         try {
             document = documentFetcher.fetchDocument(baseUrl + task.webPath());
         } catch (HttpStatusException e) {
-            System.err.println("Failed to download " + e.getUrl() + ": HTTP Status Code " + e.getStatusCode());
+            reportLogger.log("Error fetching " + e.getUrl() + ": HTTP Status Code " + e.getStatusCode());
+            reportLogger.log("This link will stay broken in the local page!");
             return List.of();
         }
         HashMap<String, String> linkMapping = linkMapper.findAndReplaceLinks(document, task.webPath());
@@ -67,8 +77,13 @@ public class WebCrawler {
         for (Map.Entry<String, String> mappedLink : linkMapping.entrySet()) {
             String link = mappedLink.getKey();
             String path = mappedLink.getValue();
-            File localDestination = new File(contentRoot, path);
-            tasks.add(new DownloadTask(link, localDestination, currentDepth + 1));
+            if (path != null) {
+                reportLogger.log("Link to path: **" + link + "** (rewritten: **" + path + "**)");
+                File localDestination = new File(contentRoot, path);
+                tasks.add(new DownloadTask(link, localDestination, currentDepth + 1));
+            } else {
+                reportLogger.log("Link to external page: **" + link + "**");
+            }
         }
         return tasks;
     }
