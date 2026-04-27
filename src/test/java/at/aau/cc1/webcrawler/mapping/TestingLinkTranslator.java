@@ -5,15 +5,15 @@ import at.aau.cc1.webcrawler.mapping.translate.LinkTranslator;
 import java.util.HashMap;
 import java.util.Map;
 
-class TestingLinkTranslator implements LinkTranslator {
+public class TestingLinkTranslator implements LinkTranslator {
     final Map<String, String> mapping = new HashMap<>();
 
-    TestingLinkTranslator map(String link, String result) {
+    public TestingLinkTranslator map(String link, String result) {
         mapping.put(link, result);
         return this;
     }
 
-    void reset() {
+    public void reset() {
         mapping.clear();
     }
 

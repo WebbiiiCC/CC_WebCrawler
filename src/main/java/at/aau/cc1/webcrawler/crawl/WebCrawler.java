@@ -3,14 +3,13 @@ package at.aau.cc1.webcrawler.crawl;
 import at.aau.cc1.webcrawler.fetch.DocumentFetcher;
 import at.aau.cc1.webcrawler.mapping.LinkMapper;
 import at.aau.cc1.webcrawler.report.ReportLogger;
+import at.aau.cc1.webcrawler.storage.StorageTarget;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.HttpStatusException;
 import org.jsoup.nodes.Document;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -18,6 +17,7 @@ public class WebCrawler {
     private final DocumentFetcher documentFetcher;
     private final ReportLogger reportLogger;
     private final LinkMapper linkMapper;
+    private final StorageTarget storageTarget;
     private final String baseUrl;
 
     public void downloadPage(String webPath, File contentRoot, int maxDepth) throws IOException {
@@ -61,15 +61,8 @@ public class WebCrawler {
             return List.of();
         }
         HashMap<String, String> linkMapping = linkMapper.findAndReplaceLinks(document, task.webPath());
-        storePageContent(document, localDestination);
+        storageTarget.store(document, localDestination);
         return createNestedDownloadTasks(linkMapping, contentRoot, task.depth());
-    }
-
-    private void storePageContent(Document document, File localDestination) throws IOException {
-        localDestination.getParentFile().mkdirs();
-        try (FileOutputStream fos = new FileOutputStream(localDestination)) {
-            fos.write(document.html().getBytes(StandardCharsets.UTF_8));
-        }
     }
 
     private List<DownloadTask> createNestedDownloadTasks(HashMap<String, String> linkMapping, File contentRoot, int currentDepth) {

@@ -13,6 +13,8 @@ import at.aau.cc1.webcrawler.mapping.translate.LocalLinkTranslator;
 import at.aau.cc1.webcrawler.report.DiscardingReportLogger;
 import at.aau.cc1.webcrawler.report.FileMarkdownReportLogger;
 import at.aau.cc1.webcrawler.report.ReportLogger;
+import at.aau.cc1.webcrawler.storage.LocalStorageTarget;
+import at.aau.cc1.webcrawler.storage.StorageTarget;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,8 +59,9 @@ public class AppRunner {
         ReportLogger reportLogger = makeReportLogger(commandConfig, outputDirectory);
         LinkTranslator linkTranslator = new LocalLinkTranslator(baseUrl);
         LinkMapper linkMapper = new LocalLinkMapper(linkTranslator);
+        StorageTarget storageTarget = new LocalStorageTarget();
 
-        return new WebCrawler(documentFetcher, reportLogger, linkMapper, baseUrl);
+        return new WebCrawler(documentFetcher, reportLogger, linkMapper, storageTarget, baseUrl);
     }
 
     private static DocumentFetcher makeDocumentFetcher(CommandConfig commandConfig) {
