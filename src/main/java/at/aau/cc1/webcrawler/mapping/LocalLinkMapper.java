@@ -1,6 +1,7 @@
 package at.aau.cc1.webcrawler.mapping;
 
 import at.aau.cc1.webcrawler.mapping.translate.LinkTranslator;
+import lombok.RequiredArgsConstructor;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -8,12 +9,9 @@ import org.jsoup.select.Elements;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 
+@RequiredArgsConstructor
 public class LocalLinkMapper implements LinkMapper {
     private final LinkTranslator linkTranslator;
-
-    public LocalLinkMapper(LinkTranslator linkTranslator) {
-        this.linkTranslator = linkTranslator;
-    }
 
     @Override
     public HashMap<String, String> findAndReplaceLinks(Document document, String currentPath) {

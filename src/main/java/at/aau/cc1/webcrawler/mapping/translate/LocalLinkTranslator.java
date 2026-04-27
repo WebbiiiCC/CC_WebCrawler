@@ -1,15 +1,14 @@
 package at.aau.cc1.webcrawler.mapping.translate;
 
+import lombok.RequiredArgsConstructor;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 
+@RequiredArgsConstructor
 public class LocalLinkTranslator implements LinkTranslator {
     private final String baseUrl;
-
-    public LocalLinkTranslator(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
 
     @Override
     public String translateLink(String currentPath, String link) throws MalformedURLException {

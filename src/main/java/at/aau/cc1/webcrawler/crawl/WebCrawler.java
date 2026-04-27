@@ -2,6 +2,7 @@ package at.aau.cc1.webcrawler.crawl;
 
 import at.aau.cc1.webcrawler.fetch.DocumentFetcher;
 import at.aau.cc1.webcrawler.mapping.LinkMapper;
+import lombok.RequiredArgsConstructor;
 import org.jsoup.HttpStatusException;
 import org.jsoup.nodes.Document;
 
@@ -11,16 +12,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+@RequiredArgsConstructor
 public class WebCrawler {
     private final DocumentFetcher documentFetcher;
     private final LinkMapper linkMapper;
     private final String baseUrl;
-
-    public WebCrawler(DocumentFetcher documentFetcher, LinkMapper linkMapper, String baseUrl) {
-        this.documentFetcher = documentFetcher;
-        this.linkMapper = linkMapper;
-        this.baseUrl = baseUrl;
-    }
 
     public void downloadPage(String webPath, File contentRoot, int maxDepth) throws IOException {
         validateWebPath(webPath);
