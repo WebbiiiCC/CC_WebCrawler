@@ -49,7 +49,7 @@ public class WebCrawler {
             return List.of();
         }
 
-        reportLogger.beginSection(task.webPath(), task.depth() + 2);
+        reportLogger.beginSection(task.webPath(), 2);
         reportLogger.log("Depth: " + task.depth());
 
         DocumentAdapter document;
@@ -61,6 +61,7 @@ public class WebCrawler {
             return List.of();
         }
         HashMap<String, String> linkMapping = linkMapper.findAndReplaceLinks(document, task.webPath());
+        reportLogger.recordDocument(document, task.webPath());
         storageTarget.store(document, localDestination);
         return createNestedDownloadTasks(linkMapping, contentRoot, task.depth());
     }

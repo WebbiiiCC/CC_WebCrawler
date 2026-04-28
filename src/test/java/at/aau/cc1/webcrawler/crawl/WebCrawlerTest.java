@@ -59,9 +59,12 @@ public class WebCrawlerTest {
                 # Crawl: https://example.org/
                 ## /
                 Depth: 0 \s
+                ### This is a heading
+                #### This is a subheading
+                ### This is another big heading
                 Link to external page: **https://example.com/** \s
                 Link to path: **/assets/style.css** (rewritten: **assets/style.css**) \s
-                ### /assets/style.css
+                ## /assets/style.css
                 Depth: 1 \s
                 Error fetching https://example.org/assets/style.css: HTTP Status Code 404 \s
                 This link will stay broken in the local page! \s
