@@ -1,9 +1,9 @@
 package at.aau.cc1.webcrawler.fetch;
 
+import at.aau.cc1.webcrawler.adapter.DocumentAdapter;
+import at.aau.cc1.webcrawler.adapter.ElementAdapter;
+import at.aau.cc1.webcrawler.adapter.HttpStatusExceptionAdapter;
 import com.sun.net.httpserver.HttpServer;
-import org.jsoup.HttpStatusException;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -54,19 +54,19 @@ public class DirectDocumentFetcherTest {
 
     @Test
     public void testFetchSimpleDocument() throws IOException {
-        Document document = documentFetcher.fetchDocument("http://localhost:" + PORT + "/index.html");
+        DocumentAdapter document = documentFetcher.fetchDocument("http://localhost:" + PORT + "/index.html");
         assertNotNull(document);
         assertEquals("Simple Document", document.title());
 
-        Element testLink = document.select("#testLink").first();
+        ElementAdapter testLink = document.select("#testLink").first();
         assertNotNull(testLink);
         assertEquals("https://example.org/", testLink.attr("href"));
         assertEquals("_blank", testLink.attr("target"));
-        assertEquals("Example", testLink.text());
+        assertEquals("Example", testLink.innerText());
     }
 
     @Test
     public void testNonExistentDocument() {
-        assertThrows(HttpStatusException.class, () -> documentFetcher.fetchDocument("http://localhost:" + PORT + "/nonExistent.html"));
+        assertThrows(HttpStatusExceptionAdapter.class, () -> documentFetcher.fetchDocument("http://localhost:" + PORT + "/nonExistent.html"));
     }
 }

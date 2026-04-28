@@ -1,13 +1,13 @@
 package at.aau.cc1.webcrawler.mapping;
 
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
+import at.aau.cc1.webcrawler.adapter.DocumentAdapter;
+import at.aau.cc1.webcrawler.adapter.ElementAdapter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static at.aau.cc1.webcrawler.DocumentInclusion.loadDocument;
+import static at.aau.cc1.webcrawler.TestingAdapters.loadDocument;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class LocalLinkMapperTest {
@@ -25,7 +25,7 @@ public class LocalLinkMapperTest {
                 .map("/assets/script.js", "../assets/script.js")
                 .map("/favicon.ico", "../favicon.ico");
 
-        Document document = loadDocument(this, "headLinkReplacement.html");
+        DocumentAdapter document = loadDocument(this, "headLinkReplacement.html");
         Map<String, String> mapping = linkMapper.findAndReplaceLinks(document, "/test/");
         assertEquals(3, mapping.size());
         assertCorrectMapping(mapping);
@@ -44,7 +44,7 @@ public class LocalLinkMapperTest {
                 .map("/media/video.mp4", "../media/video.mp4")
                 .map("/media/audio.mp3",  "../media/audio.mp3");
 
-        Document document = loadDocument(this, "bodyLinkReplacement.html");
+        DocumentAdapter document = loadDocument(this, "bodyLinkReplacement.html");
         Map<String, String> mapping = linkMapper.findAndReplaceLinks(document, "/test/");
         assertEquals(4, mapping.size());
         assertCorrectMapping(mapping);
@@ -66,7 +66,7 @@ public class LocalLinkMapperTest {
     public void testForeignLinkAvoidance() throws Exception {
         linkTranslator.map("/", "../index.html");
 
-        Document document = loadDocument(this, "foreignLinkAvoidance.html");
+        DocumentAdapter document = loadDocument(this, "foreignLinkAvoidance.html");
         Map<String, String> mapping = linkMapper.findAndReplaceLinks(document, "/test/");
         assertEquals(2, mapping.size());
         assertTrue(mapping.containsKey("https://example.com/"));
@@ -79,7 +79,7 @@ public class LocalLinkMapperTest {
                 "href", "https://example.com/");
     }
 
-    private void assertCorrectElement(Element element, String... attributes) {
+    private void assertCorrectElement(ElementAdapter element, String... attributes) {
         if (attributes.length % 2 != 0) throw new IllegalArgumentException("attributes must be even");
         assertNotNull(element);
         for (int i = 0; i < attributes.length; i += 2) {

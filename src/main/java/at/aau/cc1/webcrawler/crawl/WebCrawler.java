@@ -1,12 +1,12 @@
 package at.aau.cc1.webcrawler.crawl;
 
+import at.aau.cc1.webcrawler.adapter.DocumentAdapter;
+import at.aau.cc1.webcrawler.adapter.HttpStatusExceptionAdapter;
 import at.aau.cc1.webcrawler.fetch.DocumentFetcher;
 import at.aau.cc1.webcrawler.mapping.LinkMapper;
 import at.aau.cc1.webcrawler.report.ReportLogger;
 import at.aau.cc1.webcrawler.storage.StorageTarget;
 import lombok.RequiredArgsConstructor;
-import org.jsoup.HttpStatusException;
-import org.jsoup.nodes.Document;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,10 +52,10 @@ public class WebCrawler {
         reportLogger.beginSection(task.webPath(), task.depth() + 2);
         reportLogger.log("Depth: " + task.depth());
 
-        Document document;
+        DocumentAdapter document;
         try {
             document = documentFetcher.fetchDocument(baseUrl + task.webPath());
-        } catch (HttpStatusException e) {
+        } catch (HttpStatusExceptionAdapter e) {
             reportLogger.log("Error fetching " + e.getUrl() + ": HTTP Status Code " + e.getStatusCode());
             reportLogger.log("This link will stay broken in the local page!");
             return List.of();

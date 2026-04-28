@@ -1,7 +1,7 @@
 package at.aau.cc1.webcrawler.fetch;
 
+import at.aau.cc1.webcrawler.adapter.DocumentAdapter;
 import lombok.RequiredArgsConstructor;
-import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 
@@ -10,9 +10,9 @@ public class HeadOnlyDocumentFetcher implements DocumentFetcher {
     private final DocumentFetcher documentFetcher;
 
     @Override
-    public Document fetchDocument(String url) throws IOException {
-        Document document = documentFetcher.fetchDocument(url);
-        document.body().remove();
+    public DocumentAdapter fetchDocument(String url) throws IOException {
+        DocumentAdapter document = documentFetcher.fetchDocument(url);
+        document.truncateBody();
         return document;
     }
 }

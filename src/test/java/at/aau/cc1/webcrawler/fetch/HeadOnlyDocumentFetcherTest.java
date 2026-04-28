@@ -1,12 +1,12 @@
 package at.aau.cc1.webcrawler.fetch;
 
-import org.jsoup.nodes.Document;
+import at.aau.cc1.webcrawler.adapter.DocumentAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static at.aau.cc1.webcrawler.DocumentInclusion.loadDocument;
+import static at.aau.cc1.webcrawler.TestingAdapters.loadDocument;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class HeadOnlyDocumentFetcherTest {
@@ -14,13 +14,13 @@ public class HeadOnlyDocumentFetcherTest {
 
     @BeforeEach
     public void setupDocumentFetcher() throws Exception {
-        Document document = loadDocument(this, "simpleDocument.html");
+        DocumentAdapter document = loadDocument(this, "simpleDocument.html");
         documentFetcher = new HeadOnlyDocumentFetcher(new TestingDocumentFetcher("https://example.org/", document));
     }
 
     @Test
     public void testBodyTruncated() throws IOException {
-        Document document = documentFetcher.fetchDocument("https://example.org/");
+        DocumentAdapter document = documentFetcher.fetchDocument("https://example.org/");
         assertNotNull(document);
         assertTrue(document.select("body").isEmpty());
         assertTrue(document.select("p").isEmpty());
@@ -30,7 +30,7 @@ public class HeadOnlyDocumentFetcherTest {
 
     @Test
     public void testHeadIntact() throws IOException {
-        Document document = documentFetcher.fetchDocument("https://example.org/");
+        DocumentAdapter document = documentFetcher.fetchDocument("https://example.org/");
         assertNotNull(document);
         assertEquals("Simple Document", document.title());
     }

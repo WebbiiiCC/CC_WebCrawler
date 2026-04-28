@@ -1,19 +1,19 @@
 package at.aau.cc1.webcrawler.crawl;
 
+import at.aau.cc1.webcrawler.adapter.DocumentAdapter;
+import at.aau.cc1.webcrawler.adapter.ElementAdapter;
 import at.aau.cc1.webcrawler.fetch.TestingDocumentFetcher;
 import at.aau.cc1.webcrawler.mapping.LinkMapper;
 import at.aau.cc1.webcrawler.mapping.LocalLinkMapper;
 import at.aau.cc1.webcrawler.mapping.TestingLinkTranslator;
 import at.aau.cc1.webcrawler.mapping.translate.LinkTranslator;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 
-import static at.aau.cc1.webcrawler.DocumentInclusion.loadDocument;
+import static at.aau.cc1.webcrawler.TestingAdapters.loadDocument;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class WebCrawlerTest {
@@ -24,7 +24,7 @@ public class WebCrawlerTest {
 
     @BeforeEach
     public void setupWebCrawler() throws Exception {
-        Document document = loadDocument(this, "crawledDocument.html");
+        DocumentAdapter document = loadDocument(this, "crawledDocument.html");
         LinkTranslator linkTranslator = new TestingLinkTranslator()
                 .map("/assets/style.css", "assets/style.css");
         LinkMapper linkMapper = new LocalLinkMapper(linkTranslator);
@@ -74,16 +74,16 @@ public class WebCrawlerTest {
 
         assertEquals("/index.html", storageTarget.getStoredPath());
 
-        Document document = storageTarget.getStoredDocument();
+        DocumentAdapter document = storageTarget.getStoredDocument();
         assertNotNull(document);
         assertEquals("Simple Document", document.title());
 
-        Element headLink = document.select("html > head > link").first();
+        ElementAdapter headLink = document.select("html > head > link").first();
         assertNotNull(headLink);
         assertEquals("assets/style.css", headLink.attr("href"));
         assertEquals("stylesheet", headLink.attr("rel"));
 
-        Element testLink = document.select("#testLink").first();
+        ElementAdapter testLink = document.select("#testLink").first();
         assertNotNull(testLink);
         assertEquals("https://example.com/", testLink.attr("href"));
         assertEquals("_blank", testLink.attr("target"));

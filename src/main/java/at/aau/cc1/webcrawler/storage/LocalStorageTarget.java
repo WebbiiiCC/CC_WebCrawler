@@ -1,6 +1,6 @@
 package at.aau.cc1.webcrawler.storage;
 
-import org.jsoup.nodes.Document;
+import at.aau.cc1.webcrawler.adapter.DocumentAdapter;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,10 +9,10 @@ import java.nio.charset.StandardCharsets;
 
 public class LocalStorageTarget implements StorageTarget {
     @Override
-    public void store(Document document, File path) throws IOException {
+    public void store(DocumentAdapter document, File path) throws IOException {
         path.getParentFile().mkdirs();
         try (FileOutputStream fos = new FileOutputStream(path)) {
-            fos.write(document.html().getBytes(StandardCharsets.UTF_8));
+            fos.write(document.asHtml().getBytes(StandardCharsets.UTF_8));
         }
     }
 }
