@@ -1,56 +1,19 @@
 package at.aau.cc1.webcrawler.cmd;
 
+import at.aau.cc1.webcrawler.cmd.exception.MissingArgumentValueException;
+import at.aau.cc1.webcrawler.cmd.exception.MissingFinalParameterException;
+import at.aau.cc1.webcrawler.cmd.exception.ParseArgumentException;
+
 public class ArgumentParser {
-    public static CommandConfig parseArguments(String[] arguments) {
+    public static CommandConfig parseArguments(String[] arguments) throws ParseArgumentException, MissingFinalParameterException {
         CommandConfig commandConfig = new CommandConfig();
         int parserIndex = 0;
         while (parserIndex < arguments.length) {
             String argument = arguments[parserIndex];
-
             if (!argument.startsWith("-")) break;
 
             Argument parsedArgument = parseArgument(argument, arguments, parserIndex);
-            if (parsedArgument == null || (parsedArgument.value() != null && parsedArgument.value().isEmpty())) {
-                System.err.println("Invalid command argument: " + argument);
-                return null;
-            }
-            try {
-                switch (parsedArgument.name()) {
-                    case "--depth", "-d" -> {
-                        parsedArgument.assertHasValue();
-                        commandConfig.setMaxCrawlDepth(Integer.parseUnsignedInt(parsedArgument.value()));
-                    }
-                    case "--headOnly", "-h" -> {
-                        parsedArgument.assertNoValue();
-                        commandConfig.setStoreHeadOnly(true);
-                    }
-                    case "--report", "-r" -> {
-                        parsedArgument.assertNoValue();
-                        commandConfig.setCreateReport(true);
-                    }
-                    case "--output", "-o" -> {
-                        parsedArgument.assertHasValue();
-                        commandConfig.setOutputDirectory(parsedArgument.value());
-                    }
-                    case "--help" -> {
-                        parsedArgument.assertNoValue();
-                        commandConfig.setHelpFlag(true);
-                    }
-                    default -> {
-                        System.err.println("Unknown argument: " + parsedArgument.name());
-                    }
-                }
-            } catch (NullPointerException e) {
-                System.err.println("Argument expected a value: " + parsedArgument.name());
-                return null;
-            } catch (NumberFormatException e) {
-                System.err.println("Argument expected a number value: " + parsedArgument.name());
-                return null;
-            } catch (Exception ex) {
-                System.err.println("Failed to parse argument: " + parsedArgument.name());
-                ex.printStackTrace();
-                return null;
-            }
+            commandConfig.setArgumentByName(parsedArgument);
 
             if (parsedArgument.separated()) {
                 parserIndex += 2;
@@ -59,18 +22,17 @@ public class ArgumentParser {
             }
         }
         if (parserIndex == arguments.length) {
-            System.err.println("No URL to crawl provided!");
-            return null;
+            throw new MissingFinalParameterException("No URL to crawl provided!");
         }
         commandConfig.setCrawledUrl(arguments[parserIndex]);
         return commandConfig;
     }
 
-    private static Argument parseArgument(String argument, String[] arguments, int index) {
+    private static Argument parseArgument(String argument, String[] arguments, int index) throws MissingArgumentValueException {
         if (argument.startsWith("--") && argument.contains("=")) {
             String[] keyValuePair = argument.split("=");
             if (keyValuePair.length != 2) {
-                return null;
+                throw new MissingArgumentValueException(argument);
             }
             String key = keyValuePair[0];
             String value = keyValuePair[1];

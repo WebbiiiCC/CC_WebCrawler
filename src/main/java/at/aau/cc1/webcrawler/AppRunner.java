@@ -2,6 +2,8 @@ package at.aau.cc1.webcrawler;
 
 import at.aau.cc1.webcrawler.cmd.ArgumentParser;
 import at.aau.cc1.webcrawler.cmd.CommandConfig;
+import at.aau.cc1.webcrawler.cmd.exception.MissingFinalParameterException;
+import at.aau.cc1.webcrawler.cmd.exception.ParseArgumentException;
 import at.aau.cc1.webcrawler.crawl.WebCrawler;
 import at.aau.cc1.webcrawler.fetch.DirectDocumentFetcher;
 import at.aau.cc1.webcrawler.fetch.DocumentFetcher;
@@ -23,9 +25,16 @@ import java.net.URL;
 
 public class AppRunner {
     public static void main(String[] arguments) {
-        CommandConfig commandConfig = ArgumentParser.parseArguments(arguments);
-        if (commandConfig == null) {
+        CommandConfig commandConfig = null;
+        try {
+            commandConfig = ArgumentParser.parseArguments(arguments);
+        } catch (ParseArgumentException e) {
+            System.err.println("Failed to parse argument: " + e.getArgument());
+            System.err.println("Reason: " + e.getRawMessage());
             System.exit(1);
+        } catch (MissingFinalParameterException e) {
+            System.err.println(e.getMessage());
+            System.exit(2);
         }
 
         if (commandConfig.isHelpFlag()) {
@@ -38,7 +47,7 @@ public class AppRunner {
             url = getCrawledUrl(commandConfig);
         } catch (Exception e) {
             System.err.println("URL can not be parsed: " + e.getMessage());
-            System.exit(2);
+            System.exit(3);
         }
 
         File outputDirectory = new File(commandConfig.getOutputDirectory());
@@ -49,7 +58,7 @@ public class AppRunner {
             crawler.downloadPage(url.getPath(), contentRoot, commandConfig.getMaxCrawlDepth());
         } catch (IOException e) {
             System.err.println("Failed to crawl website: " + e.getMessage());
-            System.exit(3);
+            System.exit(4);
         }
     }
 
