@@ -14,7 +14,9 @@ import at.aau.cc1.webcrawler.mapping.translate.LinkTranslator;
 import at.aau.cc1.webcrawler.mapping.translate.LocalLinkTranslator;
 import at.aau.cc1.webcrawler.report.DiscardingReportLogger;
 import at.aau.cc1.webcrawler.report.FileMarkdownReportLogger;
+import at.aau.cc1.webcrawler.report.NoLogFileMarkdownReportLogger;
 import at.aau.cc1.webcrawler.report.ReportLogger;
+import at.aau.cc1.webcrawler.storage.DiscardingStorageTarget;
 import at.aau.cc1.webcrawler.storage.LocalStorageTarget;
 import at.aau.cc1.webcrawler.storage.StorageTarget;
 
@@ -72,6 +74,8 @@ public class AppRunner {
         System.out.println("  -o, --output=DIRECTORY            store website files in this directory");
         System.out.println("                                      [Default: " + CommandConfig.DEFAULT_OUTPUT_DIRECTORY + "]");
         System.out.println("  -r, --report                      create a report file (report.md) in the website's directory");
+        System.out.println("  -l, --logging                     include a protocol log in the report file");
+        System.out.println("  -s, --storeHtml                   store all links as local html files");
         System.out.println("  --help                            display this help and exit");
     }
 
@@ -86,7 +90,7 @@ public class AppRunner {
         ReportLogger reportLogger = makeReportLogger(commandConfig, outputDirectory);
         LinkTranslator linkTranslator = new LocalLinkTranslator(baseUrl);
         LinkMapper linkMapper = new LocalLinkMapper(linkTranslator);
-        StorageTarget storageTarget = new LocalStorageTarget();
+        StorageTarget storageTarget = makeStorageTarget(commandConfig);
 
         return new WebCrawler(documentFetcher, reportLogger, linkMapper, storageTarget, baseUrl);
     }
@@ -103,9 +107,21 @@ public class AppRunner {
     private static ReportLogger makeReportLogger(CommandConfig commandConfig, File outputDirectory) {
         if (commandConfig.isCreateReport()) {
             File reportFile = new File(outputDirectory, "report.md");
-            return new FileMarkdownReportLogger(reportFile);
+            if (commandConfig.isLoggingReport()) {
+                return new FileMarkdownReportLogger(reportFile);
+            } else {
+                return new NoLogFileMarkdownReportLogger(reportFile);
+            }
         } else {
             return new DiscardingReportLogger();
+        }
+    }
+
+    private static StorageTarget makeStorageTarget(CommandConfig commandConfig) {
+        if (commandConfig.isStoreHtml()) {
+            return new LocalStorageTarget();
+        } else {
+            return new DiscardingStorageTarget();
         }
     }
 }

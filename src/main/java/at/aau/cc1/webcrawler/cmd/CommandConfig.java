@@ -19,6 +19,8 @@ public class CommandConfig {
     private int maxCrawlDepth = DEFAULT_MAX_CRAWL_DEPTH;
     private boolean storeHeadOnly = false;
     private boolean createReport = false;
+    private boolean loggingReport = false;
+    private boolean storeHtml = false;
     private String outputDirectory = DEFAULT_OUTPUT_DIRECTORY;
     private boolean helpFlag = false;
 
@@ -42,6 +44,14 @@ public class CommandConfig {
             case "--report", "-r" -> {
                 argument.assertNoValue();
                 this.setCreateReport(true);
+            }
+            case "--logging", "-l" -> {
+                argument.assertNoValue();
+                this.setLoggingReport(true);
+            }
+            case "--storeHtml", "-s" -> {
+                argument.assertNoValue();
+                this.setStoreHtml(true);
             }
             case "--output", "-o" -> {
                 argument.assertHasValue();
