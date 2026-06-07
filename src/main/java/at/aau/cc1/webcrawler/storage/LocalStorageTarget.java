@@ -10,7 +10,9 @@ import java.nio.charset.StandardCharsets;
 public class LocalStorageTarget implements StorageTarget {
     @Override
     public void store(DocumentAdapter document, File path) throws IOException {
-        path.getParentFile().mkdirs();
+        if (!path.getParentFile().mkdirs()) {
+            throw new FileNotCreatedException("Unable to create directory: " + path.getParentFile().getAbsolutePath());
+        }
         try (FileOutputStream fileOutput = new FileOutputStream(path)) {
             fileOutput.write(document.asHtml().getBytes(StandardCharsets.UTF_8));
         }
