@@ -33,8 +33,8 @@ public class ArgumentParser {
                         commandConfig.setOutputDirectory(parsedArgument.value());
                     }
                     case "--help" -> {
-                        printHelp();
-                        System.exit(0);
+                        parsedArgument.assertNoValue();
+                        commandConfig.setHelpFlag(true);
                     }
                     default -> {
                         System.err.println("Unknown argument: " + parsedArgument.name());
@@ -82,18 +82,5 @@ public class ArgumentParser {
             }
         }
         return new Argument(argument, null, false);
-    }
-
-    private static void printHelp() {
-        System.out.println("Usage: WebCrawler [OPTION]... [URL]");
-        System.out.println();
-        System.out.println("Mandatory arguments to long options are mandatory for short options too.");
-        System.out.println("  -d, --depth=DEPTH                 only recurse to download linked resources at most DEPTH times");
-        System.out.println("                                      [Default: " + CommandConfig.DEFAULT_MAX_CRAWL_DEPTH + "]");
-        System.out.println("  -h, --headOnly                    only store and resolve the website <head>");
-        System.out.println("  -o, --output=DIRECTORY            store website files in this directory");
-        System.out.println("                                      [Default: " + CommandConfig.DEFAULT_OUTPUT_DIRECTORY + "]");
-        System.out.println("  -r, --report                      create a report file (report.md) in the website's directory");
-        System.out.println("  --help                            display this help and exit");
     }
 }

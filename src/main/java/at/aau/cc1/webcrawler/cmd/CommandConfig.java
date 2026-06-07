@@ -17,4 +17,5 @@ public class CommandConfig {
     private boolean storeHeadOnly = false;
     private boolean createReport = false;
     private String outputDirectory = DEFAULT_OUTPUT_DIRECTORY;
+    private boolean helpFlag = false;
 }

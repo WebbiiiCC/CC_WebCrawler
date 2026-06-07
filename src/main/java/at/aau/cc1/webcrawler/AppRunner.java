@@ -28,7 +28,18 @@ public class AppRunner {
             System.exit(1);
         }
 
-        URL url = getCrawledUrl(commandConfig);
+        if (commandConfig.isHelpFlag()) {
+            printHelp();
+            System.exit(0);
+        }
+
+        URL url = null;
+        try {
+            url = getCrawledUrl(commandConfig);
+        } catch (Exception e) {
+            System.err.println("URL can not be parsed: " + e.getMessage());
+            System.exit(2);
+        }
 
         File outputDirectory = new File(commandConfig.getOutputDirectory());
         File contentRoot = new File(outputDirectory, url.getProtocol() + "_" + url.getAuthority());
@@ -42,14 +53,21 @@ public class AppRunner {
         }
     }
 
-    private static URL getCrawledUrl(CommandConfig commandConfig) {
-        try {
-            return URI.create(commandConfig.getCrawledUrl()).toURL();
-        } catch (Exception e) {
-            System.err.println("URL can not be parsed: " + e.getMessage());
-            System.exit(2);
-            return null; // This point is unreachable, but Java doesn't understand that
-        }
+    private static void printHelp() {
+        System.out.println("Usage: WebCrawler [OPTION]... [URL]");
+        System.out.println();
+        System.out.println("Mandatory arguments to long options are mandatory for short options too.");
+        System.out.println("  -d, --depth=DEPTH                 only recurse to download linked resources at most DEPTH times");
+        System.out.println("                                      [Default: " + CommandConfig.DEFAULT_MAX_CRAWL_DEPTH + "]");
+        System.out.println("  -h, --headOnly                    only store and resolve the website <head>");
+        System.out.println("  -o, --output=DIRECTORY            store website files in this directory");
+        System.out.println("                                      [Default: " + CommandConfig.DEFAULT_OUTPUT_DIRECTORY + "]");
+        System.out.println("  -r, --report                      create a report file (report.md) in the website's directory");
+        System.out.println("  --help                            display this help and exit");
+    }
+
+    private static URL getCrawledUrl(CommandConfig commandConfig) throws Exception {
+        return URI.create(commandConfig.getCrawledUrl()).toURL();
     }
 
     private static WebCrawler makeWebCrawler(CommandConfig commandConfig, File outputDirectory, URL url) {
