@@ -13,7 +13,7 @@ while in reality you will likely use something more similar to `java -jar WebCra
 
 Only the URL is a required argument: `WebCrawler https://example.org/`  
 This will NOT generate a report and only recursively store the page with a max depth of 10!  
-For an overview of all options, please run `WebCrawler -h` or `WebCrawler --help`.  
+For an overview of all options, please run `WebCrawler --help`.  
 The option format closely follows the bash standard. These all mean the same thing:  
 - --depth=10
 - --depth 10
