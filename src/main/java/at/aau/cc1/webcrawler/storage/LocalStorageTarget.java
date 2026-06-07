@@ -11,8 +11,8 @@ public class LocalStorageTarget implements StorageTarget {
     @Override
     public void store(DocumentAdapter document, File path) throws IOException {
         path.getParentFile().mkdirs();
-        try (FileOutputStream fos = new FileOutputStream(path)) {
-            fos.write(document.asHtml().getBytes(StandardCharsets.UTF_8));
+        try (FileOutputStream fileOutput = new FileOutputStream(path)) {
+            fileOutput.write(document.asHtml().getBytes(StandardCharsets.UTF_8));
         }
     }
 }
