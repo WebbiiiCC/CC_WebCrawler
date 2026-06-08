@@ -62,8 +62,6 @@ public class WebCrawlerTest {
                 ### This is a heading
                 #### This is a subheading
                 ### This is another big heading
-                Link to external page: **https://example.com/** \s
-                Link to path: **/assets/style.css** (rewritten: **assets/style.css**) \s
                 ## /assets/style.css
                 Depth: 1 \s
                 Error fetching https://example.org/assets/style.css: HTTP Status Code 404 \s

@@ -22,24 +22,26 @@ public class MarkdownReportLoggerTest {
     @ParameterizedTest
     @ValueSource(strings = {"This is a test message!", "This is another test message!"})
     public void testSimpleMessages(String message) {
-        reportLogger.log(message);
+        reportLogger.beginSection("sec", "Test Section", 1);
+        reportLogger.log("sec", message);
         reportLogger.finish();
 
-        String output = reportLogger.getOutput().toString().split("\n")[0];
+        String output = reportLogger.getOutput().toString().split("\n")[1];
         assertEquals(message, output.trim());
         assertTrue(output.endsWith("  "));
     }
 
     @Test
     public void testMultipleMessages() {
+        reportLogger.beginSection("sec", "Test Section", 1);
         for (int i = 1; i <= 3; i++) {
-            reportLogger.log("Test #" + i);
+            reportLogger.log("sec", "Test #" + i);
         }
         reportLogger.finish();
 
         String[] output = reportLogger.getOutput().toString().split("\n");
         for (int i = 1; i <= 3; i++) {
-            String line = output[i - 1];
+            String line = output[i];
             assertEquals("Test #" + i, line.trim());
             assertTrue(line.endsWith("  "));
         }
@@ -48,7 +50,7 @@ public class MarkdownReportLoggerTest {
     @Test
     public void testSections() {
         for (int i = 1; i <= 3; i++) {
-            reportLogger.beginSection("Test Section #" + i, i);
+            reportLogger.beginSection("s" + i, "Test Section #" + i, i);
         }
         reportLogger.finish();
 
@@ -61,13 +63,13 @@ public class MarkdownReportLoggerTest {
 
     @Test
     public void testSectionText() {
-        reportLogger.beginSection("Test Section #1", 1);
-        reportLogger.log("Test #1");
-        reportLogger.beginSection("Test Section #2", 2);
-        reportLogger.log("Test #2");
-        reportLogger.log("More text for #2");
-        reportLogger.beginSection("Final test section", 1);
-        reportLogger.log("Final test text");
+        reportLogger.beginSection("s1", "Test Section #1", 1);
+        reportLogger.log("s1", "Test #1");
+        reportLogger.beginSection("s2", "Test Section #2", 2);
+        reportLogger.log("s2", "Test #2");
+        reportLogger.log("s2", "More text for #2");
+        reportLogger.beginSection("s3", "Final test section", 1);
+        reportLogger.log("s3", "Final test text");
         reportLogger.finish();
 
         String output = reportLogger.getOutput().toString();

@@ -8,6 +8,6 @@ public class NoLogFileMarkdownReportLogger extends FileMarkdownReportLogger {
     }
 
     @Override
-    public void log(String message) {
+    public void log(String sectionKey, String message) {
     }
 }

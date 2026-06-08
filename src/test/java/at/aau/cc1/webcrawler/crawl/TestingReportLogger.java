@@ -9,15 +9,15 @@ public class TestingReportLogger extends MarkdownReportLogger {
     private boolean invocationsPastFinish = false;
 
     @Override
-    public void beginSection(String sectionName, int headingDepth) {
+    public void beginSection(String sectionKey, String sectionName, int headingDepth) {
         if (finished) invocationsPastFinish = true;
-        super.beginSection(sectionName, headingDepth);
+        super.beginSection(sectionKey, sectionName, headingDepth);
     }
 
     @Override
-    public void log(String message) {
+    public void log(String sectionKey, String message) {
         if (finished) invocationsPastFinish = true;
-        super.log(message);
+        super.log(sectionKey, message);
     }
 
     @Override
