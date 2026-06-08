@@ -12,10 +12,7 @@ import at.aau.cc1.webcrawler.mapping.LinkMapper;
 import at.aau.cc1.webcrawler.mapping.LocalLinkMapper;
 import at.aau.cc1.webcrawler.mapping.translate.LinkTranslator;
 import at.aau.cc1.webcrawler.mapping.translate.LocalLinkTranslator;
-import at.aau.cc1.webcrawler.report.DiscardingReportLogger;
-import at.aau.cc1.webcrawler.report.FileMarkdownReportLogger;
-import at.aau.cc1.webcrawler.report.NoLogFileMarkdownReportLogger;
-import at.aau.cc1.webcrawler.report.ReportLogger;
+import at.aau.cc1.webcrawler.report.*;
 import at.aau.cc1.webcrawler.storage.DiscardingStorageTarget;
 import at.aau.cc1.webcrawler.storage.LocalStorageTarget;
 import at.aau.cc1.webcrawler.storage.StorageTarget;
@@ -24,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Optional;
 
 public class AppRunner {
     public static void main(String[] arguments) {
@@ -76,6 +74,7 @@ public class AppRunner {
         System.out.println("  -r, --report                      create a report file (report.md) in the website's directory");
         System.out.println("  -l, --logging                     include a protocol log in the report file");
         System.out.println("  -s, --storeHtml                   store all links as local html files");
+        System.out.println("  -p, --print                       print report output to stdout");
         System.out.println("  --help                            display this help and exit");
     }
 
@@ -105,16 +104,31 @@ public class AppRunner {
     }
 
     private static ReportLogger makeReportLogger(CommandConfig commandConfig, File outputDirectory) {
+        Optional<ReportLogger> fileReportLogger = makeFileReportLogger(commandConfig, outputDirectory);
+        Optional<ReportLogger> printingReportLogger = makePrintingReportLogger(commandConfig);
+        if (fileReportLogger.isPresent() && printingReportLogger.isPresent()) {
+            return new JointReportLogger(fileReportLogger.get(), printingReportLogger.get());
+        }
+        return fileReportLogger.orElseGet(() -> printingReportLogger.orElseGet(DiscardingReportLogger::new));
+    }
+
+    private static Optional<ReportLogger> makeFileReportLogger(CommandConfig commandConfig, File outputDirectory) {
         if (commandConfig.isCreateReport()) {
             File reportFile = new File(outputDirectory, "report.md");
             if (commandConfig.isLoggingReport()) {
-                return new FileMarkdownReportLogger(reportFile);
+                return Optional.of(new FileMarkdownReportLogger(reportFile));
             } else {
-                return new NoLogFileMarkdownReportLogger(reportFile);
+                return Optional.of(new NoLogFileMarkdownReportLogger(reportFile));
             }
-        } else {
-            return new DiscardingReportLogger();
         }
+        return Optional.empty();
+    }
+
+    private static Optional<ReportLogger> makePrintingReportLogger(CommandConfig commandConfig) {
+        if (commandConfig.isPrintStdout()) {
+            return Optional.of(new PrintingReportLogger("Crawl", System.out));
+        }
+        return Optional.empty();
     }
 
     private static StorageTarget makeStorageTarget(CommandConfig commandConfig) {

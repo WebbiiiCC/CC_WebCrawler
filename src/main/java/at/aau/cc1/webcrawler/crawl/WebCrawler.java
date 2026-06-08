@@ -1,6 +1,8 @@
 package at.aau.cc1.webcrawler.crawl;
 
 import at.aau.cc1.webcrawler.adapter.DocumentAdapter;
+import at.aau.cc1.webcrawler.adapter.ElementAdapter;
+import at.aau.cc1.webcrawler.adapter.ElementsAdapter;
 import at.aau.cc1.webcrawler.adapter.HttpStatusExceptionAdapter;
 import at.aau.cc1.webcrawler.fetch.DocumentFetcher;
 import at.aau.cc1.webcrawler.mapping.LinkMapper;
@@ -63,9 +65,20 @@ public class WebCrawler {
             return List.of();
         }
         HashMap<String, String> linkMapping = linkMapper.findAndReplaceLinks(document, task.webPath());
-        reportLogger.recordDocument(webPath, document, task.webPath());
+        reportDocument(webPath, document);
         storageTarget.store(document, localDestination);
         return createNestedDownloadTasks(linkMapping, contentRoot, task.depth());
+    }
+
+    private void reportDocument(String webPath, DocumentAdapter document) {
+        ElementsAdapter headings = document.select("h1, h2, h3, h4, h5, h6");
+        for (ElementAdapter heading : headings.getElements()) {
+            int headingSize = Integer.parseUnsignedInt(heading.tagName().substring(1));
+
+            // Use a heading 2 sizes smaller to avoid visual conflict with the
+            // other headers used to indicate which page is being downloaded
+            reportLogger.beginSection(webPath + " document", heading.innerText(), headingSize + 2);
+        }
     }
 
     private List<DownloadTask> createNestedDownloadTasks(HashMap<String, String> linkMapping, File contentRoot, int currentDepth) {

@@ -21,6 +21,7 @@ public class CommandConfig {
     private boolean createReport = false;
     private boolean loggingReport = false;
     private boolean storeHtml = false;
+    private boolean printStdout = false;
     private String outputDirectory = DEFAULT_OUTPUT_DIRECTORY;
     private boolean helpFlag = false;
 
@@ -56,6 +57,10 @@ public class CommandConfig {
             case "--output", "-o" -> {
                 argument.assertHasValue();
                 this.setOutputDirectory(argument.value());
+            }
+            case "--print", "-p" -> {
+                argument.assertNoValue();
+                this.setPrintStdout(true);
             }
             case "--help" -> {
                 argument.assertNoValue();
