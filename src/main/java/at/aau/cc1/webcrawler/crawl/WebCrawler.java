@@ -5,6 +5,7 @@ import at.aau.cc1.webcrawler.adapter.HttpStatusExceptionAdapter;
 import at.aau.cc1.webcrawler.fetch.DocumentFetcher;
 import at.aau.cc1.webcrawler.mapping.LinkMapper;
 import at.aau.cc1.webcrawler.report.ReportLogger;
+import at.aau.cc1.webcrawler.storage.FileNotCreatedException;
 import at.aau.cc1.webcrawler.storage.StorageTarget;
 import lombok.RequiredArgsConstructor;
 
@@ -100,8 +101,8 @@ public class WebCrawler {
         if (contentRoot == null) {
             throw new NullPointerException("contentRoot is null");
         }
-        if (!contentRoot.mkdirs() && !contentRoot.isDirectory()) {
-            throw new RuntimeException("contentRoot does not exist and could not be created");
+        if ((!contentRoot.exists() && !contentRoot.mkdirs()) || !contentRoot.isDirectory()) {
+            throw new FileNotCreatedException("contentRoot does not exist and could not be created");
         }
     }
 }
