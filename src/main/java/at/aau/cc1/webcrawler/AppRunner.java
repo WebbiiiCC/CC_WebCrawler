@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AppRunner {
     public static void main(String[] arguments) {
@@ -55,7 +57,7 @@ public class AppRunner {
 
         WebCrawler crawler = makeWebCrawler(commandConfig, outputDirectory, url);
         try {
-            crawler.downloadPage(url.getPath(), contentRoot, commandConfig.getMaxCrawlDepth());
+            crawler.downloadPage(url.getPath(), contentRoot, commandConfig.getMaxCrawlDepth()).join();
         } catch (IOException e) {
             System.err.println("Failed to crawl website: " + e.getMessage());
             System.exit(4);
@@ -71,6 +73,8 @@ public class AppRunner {
         System.out.println("  -h, --headOnly                    only store and resolve the website <head>");
         System.out.println("  -o, --output=DIRECTORY            store website files in this directory");
         System.out.println("                                      [Default: " + CommandConfig.DEFAULT_OUTPUT_DIRECTORY + "]");
+        System.out.println("  -t, --threads=COUNT               crawl on COUNT threads");
+        System.out.println("                                      [Default: " + CommandConfig.DEFAULT_THREAD_POOL_SIZE + "]");
         System.out.println("  -r, --report                      create a report file (report.md) in the website's directory");
         System.out.println("  -l, --logging                     include a protocol log in the report file");
         System.out.println("  -s, --storeHtml                   store all links as local html files");
@@ -85,13 +89,23 @@ public class AppRunner {
     private static WebCrawler makeWebCrawler(CommandConfig commandConfig, File outputDirectory, URL url) {
         String baseUrl = url.getProtocol() + "://" + url.getAuthority();
 
+        ExecutorService executor = makeExecutorService(commandConfig);
         DocumentFetcher documentFetcher = makeDocumentFetcher(commandConfig);
         ReportLogger reportLogger = makeReportLogger(commandConfig, outputDirectory);
         LinkTranslator linkTranslator = new LocalLinkTranslator(baseUrl);
         LinkMapper linkMapper = new LocalLinkMapper(linkTranslator);
         StorageTarget storageTarget = makeStorageTarget(commandConfig);
 
-        return new WebCrawler(documentFetcher, reportLogger, linkMapper, storageTarget, baseUrl);
+        return new WebCrawler(executor, documentFetcher, reportLogger, linkMapper, storageTarget, baseUrl);
+    }
+
+    private static ExecutorService makeExecutorService(CommandConfig commandConfig) {
+        int threadPoolSize = commandConfig.getThreadPoolSize();
+        if (threadPoolSize == 1) {
+            return Executors.newSingleThreadExecutor();
+        } else {
+            return Executors.newFixedThreadPool(threadPoolSize);
+        }
     }
 
     private static DocumentFetcher makeDocumentFetcher(CommandConfig commandConfig) {

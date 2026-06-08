@@ -14,60 +14,88 @@ import lombok.RequiredArgsConstructor;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @RequiredArgsConstructor
 public class WebCrawler {
+    private final ExecutorService executor;
     private final DocumentFetcher documentFetcher;
     private final ReportLogger reportLogger;
     private final LinkMapper linkMapper;
     private final StorageTarget storageTarget;
     private final String baseUrl;
 
-    public void downloadPage(String webPath, File contentRoot, int maxDepth) throws IOException {
+    private final AtomicInteger pendingTasks = new AtomicInteger(0);
+    private final CompletableFuture<Void> future = new CompletableFuture<>();
+
+    public CompletableFuture<Void> downloadPage(String webPath, File contentRoot, int maxDepth) throws IOException {
         validateWebPath(webPath);
         createAndValidateContentRoot(contentRoot);
 
         reportLogger.beginSection("crawl", "Crawl: " + baseUrl + webPath, 1);
 
-        Queue<DownloadTask> tasks = new LinkedList<>();
-        tasks.add(getInitialDownloadTask(webPath, contentRoot));
-        do {
-            DownloadTask task = tasks.poll();
-            if (task.depth() > maxDepth) {
-                reportLogger.log(task.webPath(), "Skipping download of " + task.webPath() + " because the max depth of " + maxDepth + " has been reached");
-                continue;
-            }
+        DownloadTask initialTask = getInitialDownloadTask(webPath, contentRoot);
+        scheduleDownloadTask(initialTask, contentRoot, maxDepth);
 
-            List<DownloadTask> newTasks = handleDownloadTask(task, contentRoot);
-            tasks.addAll(newTasks);
-        } while (!tasks.isEmpty());
-
-        reportLogger.finish();
+        return future;
     }
 
-    private List<DownloadTask> handleDownloadTask(DownloadTask task, File contentRoot) throws IOException {
+    private void shutdownCrawler() {
+        executor.shutdown();
+        reportLogger.finish();
+
+        future.complete(null);
+    }
+
+    private void scheduleDownloadTask(DownloadTask task, File contentRoot, int maxDepth) {
+        synchronized (pendingTasks) {
+            pendingTasks.getAndIncrement();
+        }
+
+        executor.submit(() -> {
+            try {
+                List<DownloadTask> newTasks = runDownloadTask(task, contentRoot);
+                for (DownloadTask newTask : newTasks) {
+                    if (task.depth() > maxDepth) {
+                        continue;
+                    }
+                    scheduleDownloadTask(newTask, contentRoot, maxDepth);
+                }
+            } catch (Exception e) {
+                reportLogger.log(task.webPath(), "Failed to download " + task.webPath() + ": " + e.getMessage());
+            } finally {
+                synchronized (pendingTasks) {
+                    if (pendingTasks.decrementAndGet() == 0) {
+                        shutdownCrawler();
+                    }
+                }
+            }
+        });
+    }
+
+    private List<DownloadTask> runDownloadTask(DownloadTask task, File contentRoot) throws IOException {
         String webPath = task.webPath();
+        reportLogger.beginSection(webPath, webPath, 2);
+        reportLogger.log(webPath, "Depth: " + task.depth());
+
         File localDestination = task.localDestination();
         if (localDestination.exists()) {
             reportLogger.log(webPath, "Skipping download of " + task.webPath() + " because it was already downloaded before");
             return List.of();
         }
 
-        reportLogger.beginSection(webPath, webPath, 2);
-        reportLogger.log(webPath, "Depth: " + task.depth());
+        DocumentAdapter document = documentFetcher.fetchDocument(baseUrl + webPath);
+        handleDocument(task, document);
 
-        DocumentAdapter document;
-        try {
-            document = documentFetcher.fetchDocument(baseUrl + task.webPath());
-        } catch (HttpStatusExceptionAdapter e) {
-            reportLogger.log(webPath, "Error fetching " + e.getUrl() + ": HTTP Status Code " + e.getStatusCode());
-            reportLogger.log(webPath, "This link will stay broken in the local page!");
-            return List.of();
-        }
         HashMap<String, String> linkMapping = linkMapper.findAndReplaceLinks(document, task.webPath());
-        reportDocument(webPath, document);
-        storageTarget.store(document, localDestination);
         return createNestedDownloadTasks(linkMapping, contentRoot, task.depth());
+    }
+
+    private void handleDocument(DownloadTask task, DocumentAdapter document) throws IOException {
+        reportDocument(task.webPath(), document);
+        storageTarget.store(document, task.localDestination());
     }
 
     private void reportDocument(String webPath, DocumentAdapter document) {

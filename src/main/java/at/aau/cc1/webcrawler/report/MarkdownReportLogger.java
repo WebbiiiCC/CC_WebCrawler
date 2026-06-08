@@ -7,14 +7,14 @@ public abstract class MarkdownReportLogger implements ReportLogger {
     private final SequencedMap<String, StringBuilder> sections = new LinkedHashMap<>();
 
     @Override
-    public void beginSection(String sectionKey, String sectionName, int headingDepth) {
+    public synchronized void beginSection(String sectionKey, String sectionName, int headingDepth) {
         StringBuilder sectionText = sections.getOrDefault(sectionKey, new StringBuilder());
         sectionText.append("#".repeat(headingDepth)).append(' ').append(sectionName).append("\n");
         sections.put(sectionKey, sectionText);
     }
 
     @Override
-    public void log(String sectionKey, String message) {
+    public synchronized void log(String sectionKey, String message) {
         sections.get(sectionKey).append(message).append("  \n");
     }
 

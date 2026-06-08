@@ -13,6 +13,7 @@ import lombok.ToString;
 @ToString
 public class CommandConfig {
     public static final int DEFAULT_MAX_CRAWL_DEPTH = 10;
+    public static final int DEFAULT_THREAD_POOL_SIZE = 1;
     public static final String DEFAULT_OUTPUT_DIRECTORY = "./crawl";
 
     private String crawledUrl;
@@ -23,6 +24,7 @@ public class CommandConfig {
     private boolean storeHtml = false;
     private boolean printStdout = false;
     private String outputDirectory = DEFAULT_OUTPUT_DIRECTORY;
+    private int threadPoolSize = DEFAULT_THREAD_POOL_SIZE;
     private boolean helpFlag = false;
 
     void setArgumentByName(Argument argument) throws ParseArgumentException {
@@ -57,6 +59,17 @@ public class CommandConfig {
             case "--output", "-o" -> {
                 argument.assertHasValue();
                 this.setOutputDirectory(argument.value());
+            }
+            case "--threads", "-t" -> {
+                argument.assertHasValue();
+
+                int threads;
+                try {
+                    threads = Integer.parseUnsignedInt(argument.value());
+                } catch (NumberFormatException e) {
+                    throw new ParseNumberArgumentException(argument.name());
+                }
+                this.setThreadPoolSize(threads);
             }
             case "--print", "-p" -> {
                 argument.assertNoValue();

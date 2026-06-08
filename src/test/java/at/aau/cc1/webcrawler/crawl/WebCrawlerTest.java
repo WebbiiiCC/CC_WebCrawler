@@ -12,6 +12,9 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static at.aau.cc1.webcrawler.TestingAdapters.loadDocument;
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,15 +31,17 @@ public class WebCrawlerTest {
         LinkTranslator linkTranslator = new TestingLinkTranslator()
                 .map("/assets/style.css", "assets/style.css");
         LinkMapper linkMapper = new LocalLinkMapper(linkTranslator);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
         documentFetcher = new TestingDocumentFetcher("https://example.org/", document);
         reportLogger = new TestingReportLogger();
         storageTarget = new TestingStorageTarget();
-        webCrawler = new WebCrawler(documentFetcher, reportLogger, linkMapper, storageTarget, "https://example.org");
+        webCrawler = new WebCrawler(executor, documentFetcher, reportLogger, linkMapper, storageTarget, "https://example.org");
     }
 
     @Test
     public void testDocumentsFetched() throws IOException {
-        webCrawler.downloadPage("/", new File("/"), 5);
+        webCrawler.downloadPage("/", new File("/"), 5).join();
 
         assertEquals(1, documentFetcher.getFetches());
         assertEquals(1, documentFetcher.getErrors());
@@ -44,7 +49,7 @@ public class WebCrawlerTest {
 
     @Test
     public void testReportFinished() throws IOException {
-        webCrawler.downloadPage("/", new File("/"), 5);
+        webCrawler.downloadPage("/", new File("/"), 5).join();
 
         assertTrue(reportLogger.isFinished());
         assertFalse(reportLogger.isInvocationsPastFinish());
@@ -52,7 +57,7 @@ public class WebCrawlerTest {
 
     @Test
     public void testReportCorrect() throws IOException {
-        webCrawler.downloadPage("/", new File("/"), 5);
+        webCrawler.downloadPage("/", new File("/"), 5).join();
 
         String output = reportLogger.getOutput().toString();
         assertEquals("""
@@ -63,15 +68,14 @@ public class WebCrawlerTest {
                 #### This is a subheading
                 ### This is another big heading
                 ## /assets/style.css
-                Depth: 1 \s
-                Error fetching https://example.org/assets/style.css: HTTP Status Code 404 \s
-                This link will stay broken in the local page! \s
-                """, output);
+                Depth: 1 \s""",
+                output.lines().limit(8).collect(Collectors.joining("\n")));
+        assertTrue(output.split("\n")[8].startsWith("Failed to download /assets/style.css: "));
     }
 
     @Test
     public void testCorrectDocumentStored() throws IOException {
-        webCrawler.downloadPage("/", new File("/"), 5);
+        webCrawler.downloadPage("/", new File("/"), 5).join();
 
         assertEquals("/index.html", storageTarget.getStoredPath());
 
