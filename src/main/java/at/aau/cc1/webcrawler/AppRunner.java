@@ -55,7 +55,7 @@ public class AppRunner {
         File outputDirectory = new File(commandConfig.getOutputDirectory());
         File contentRoot = new File(outputDirectory, url.getProtocol() + "_" + url.getAuthority());
 
-        WebCrawler crawler = makeWebCrawler(commandConfig, outputDirectory, url);
+        WebCrawler crawler = makeWebCrawler(commandConfig, contentRoot, url);
         try {
             crawler.downloadPage(url.getPath(), contentRoot, commandConfig.getMaxCrawlDepth()).join();
         } catch (IOException e) {
@@ -128,7 +128,7 @@ public class AppRunner {
 
     private static Optional<ReportLogger> makeFileReportLogger(CommandConfig commandConfig, File outputDirectory) {
         if (commandConfig.isCreateReport()) {
-            File reportFile = new File(outputDirectory, "report.md");
+            File reportFile = new File(outputDirectory, "crawl-report.md");
             if (commandConfig.isLoggingReport()) {
                 return Optional.of(new FileMarkdownReportLogger(reportFile));
             } else {
