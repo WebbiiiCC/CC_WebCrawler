@@ -12,6 +12,9 @@ public class LocalLinkTranslator implements LinkTranslator {
 
     @Override
     public String translateLink(String currentPath, String link) throws MalformedURLException {
+        if (link.startsWith("data:")) {
+            return null;
+        }
         URI uri = URI.create(link);
         if (isForeignHost(uri)) {
             return null;
