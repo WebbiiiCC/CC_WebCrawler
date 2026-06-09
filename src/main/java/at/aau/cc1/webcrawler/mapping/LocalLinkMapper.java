@@ -14,7 +14,7 @@ public class LocalLinkMapper implements LinkMapper {
     private final LinkTranslator linkTranslator;
 
     @Override
-    public HashMap<String, String> findAndReplaceLinks(DocumentAdapter document, String currentPath) {
+    public HashMap<String, String> findAndReplaceLinks(DocumentAdapter document, String currentPath) throws MalformedURLException {
         // Disclaimer: This method is based on the example found at https://jsoup.org/cookbook/extracting-data/example-list-links
         // Last accessed: 2026-04-26 16:50
         HashMap<String, String> linkMap = new HashMap<>();
@@ -24,20 +24,16 @@ public class LocalLinkMapper implements LinkMapper {
         return linkMap;
     }
 
-    private HashMap<String, String> replaceElementLinks(ElementsAdapter elements, String attributeName, String currentPath) {
+    private HashMap<String, String> replaceElementLinks(ElementsAdapter elements, String attributeName, String currentPath) throws MalformedURLException {
         HashMap<String, String> linkMapping = new HashMap<>();
         for (ElementAdapter element : elements.getElements()) {
             String link = element.attr(attributeName);
-            try {
-                String localPath = this.linkTranslator.translateLink(currentPath, link);
-                if (localPath != null) {
-                    element.attr(attributeName, localPath);
-                    linkMapping.put(link, localPath);
-                } else {
-                    linkMapping.put(link, null);
-                }
-            } catch (MalformedURLException e) {
-                System.err.println("Can't find local path for link: " + link);
+            String localPath = this.linkTranslator.translateLink(currentPath, link);
+            if (localPath != null) {
+                element.attr(attributeName, localPath);
+                linkMapping.put(link, localPath);
+            } else {
+                linkMapping.put(link, null);
             }
         }
         return linkMapping;
