@@ -74,7 +74,8 @@ public class WebCrawler {
             try {
                 List<DownloadTask> newTasks = runDownloadTask(task, contentRoot);
                 for (DownloadTask newTask : newTasks) {
-                    if (task.depth() > maxDepth) {
+                    if (newTask.depth() > maxDepth) {
+                        reportLogger.log(task.webPath(), "Not downloading " + task.webPath() + " because max depth was reached");
                         continue;
                     }
                     scheduleDownloadTask(newTask, contentRoot, maxDepth);
