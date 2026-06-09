@@ -1,7 +1,7 @@
 package at.aau.cc1.webcrawler.cmd;
 
 import at.aau.cc1.webcrawler.cmd.exception.MissingArgumentValueException;
-import at.aau.cc1.webcrawler.cmd.exception.UnexpectedArgumentValueExpection;
+import at.aau.cc1.webcrawler.cmd.exception.UnexpectedArgumentValueException;
 
 record Argument(String name, String value, boolean separated) {
     void assertHasValue() throws MissingArgumentValueException {
@@ -10,9 +10,9 @@ record Argument(String name, String value, boolean separated) {
         }
     }
 
-    void assertNoValue() throws UnexpectedArgumentValueExpection {
+    void assertNoValue() throws UnexpectedArgumentValueException {
         if (value != null) {
-            throw new UnexpectedArgumentValueExpection(name);
+            throw new UnexpectedArgumentValueException(name);
         }
     }
 }

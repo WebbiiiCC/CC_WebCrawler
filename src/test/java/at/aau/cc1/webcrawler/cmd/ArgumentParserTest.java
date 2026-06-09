@@ -54,7 +54,7 @@ public class ArgumentParserTest {
     @ParameterizedTest
     @ValueSource(strings = {"--storeHtml test", "-s test", "-r abc", "-l asdf"})
     public void testArgumentsWithUnexpectedValue(String argumentsInput) {
-        assertThrows(UnexpectedArgumentValueExpection.class, () -> ArgumentParser.parseArguments((argumentsInput + " " + url).split(" ")));
+        assertThrows(UnexpectedArgumentValueException.class, () -> ArgumentParser.parseArguments((argumentsInput + " " + url).split(" ")));
     }
 
     @ParameterizedTest

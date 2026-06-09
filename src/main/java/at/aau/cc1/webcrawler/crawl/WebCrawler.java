@@ -29,7 +29,7 @@ public class WebCrawler {
     private final AtomicInteger pendingTasks = new AtomicInteger(0);
     private final CompletableFuture<Void> future = new CompletableFuture<>();
 
-    public CompletableFuture<Void> downloadPage(String webPath, File contentRoot, int maxDepth) throws IOException {
+    public CompletableFuture<Void> downloadPage(String webPath, File contentRoot, int maxDepth) {
         validateWebPath(webPath);
         createAndValidateContentRoot(contentRoot);
 

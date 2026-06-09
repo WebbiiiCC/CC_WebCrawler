@@ -18,7 +18,6 @@ import at.aau.cc1.webcrawler.storage.LocalStorageTarget;
 import at.aau.cc1.webcrawler.storage.StorageTarget;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Optional;
@@ -56,12 +55,13 @@ public class AppRunner {
         File contentRoot = new File(outputDirectory, url.getProtocol() + "_" + url.getAuthority());
 
         WebCrawler crawler = makeWebCrawler(commandConfig, contentRoot, url);
-        try {
-            crawler.downloadPage(url.getPath(), contentRoot, commandConfig.getMaxCrawlDepth()).join();
-        } catch (IOException e) {
-            System.err.println("Failed to crawl website: " + e.getMessage());
-            System.exit(4);
-        }
+        crawler.downloadPage(url.getPath(), contentRoot, commandConfig.getMaxCrawlDepth())
+                .exceptionally((exception) -> {
+                    System.err.println("Failed to crawl website: " + exception.getMessage());
+                    System.exit(4);
+                    return null;
+                })
+                .join();
     }
 
     private static void printHelp() {
