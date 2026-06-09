@@ -79,6 +79,23 @@ public class LocalLinkMapperTest {
                 "href", "https://example.com/");
     }
 
+    @Test
+    public void testDataLinkAvoidance() throws Exception {
+        linkTranslator.map("/", "../index.html");
+
+        DocumentAdapter document = loadDocument(this, "dataLinkAvoidance.html");
+        Map<String, String> mapping = linkMapper.findAndReplaceLinks(document, "/test/");
+        assertEquals(2, mapping.size());
+        assertTrue(mapping.containsKey("data:,"));
+        assertNull(mapping.remove("data:,"));
+        assertCorrectMapping(mapping);
+
+        assertCorrectElement(document.select("#linkRoot").first(),
+                "href", "../index.html");
+        assertCorrectElement(document.select("#linkData").first(),
+                "src", "data:,");
+    }
+
     private void assertCorrectElement(ElementAdapter element, String... attributes) {
         if (attributes.length % 2 != 0) throw new IllegalArgumentException("attributes must be even");
         assertNotNull(element);
