@@ -20,5 +20,10 @@ The option format closely follows the bash standard. These all mean the same thi
 - -d 10
 
 ## Formal task requirements:
-To fulfill the Moodle task requirements use the --depth option to set a maxDepth and specify --report to get a markdown report.  
-You will find the crawled page as well as the report in ./crawl (unless otherwise specified by --output).
+To fulfill the Moodle task requirements use the --depth option to set a max depth and specify --report to get a markdown report.  
+To be shown a log in stdout (including errors), specify the --print option.  
+To crawl on multiple threads, specify the thread pool size using --threads <SIZE>.  
+You will find the report in ./crawl/<url> (unless otherwise specified by --output).
+
+Use this command to crawl an example page as specified in the task requirements: `WebCrawler -t 10 -d 2 -r -p https://example.org/`  
+This uses a thread pool of 10 threads and a max depth of 2.
