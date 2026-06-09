@@ -51,12 +51,26 @@ public class WebCrawler {
         }
     }
 
-    private void scheduleDownloadTask(DownloadTask task, File contentRoot, int maxDepth) {
+    private void scheduleAndTrackExecution(Runnable executable) {
         synchronized (pendingTasks) {
             pendingTasks.getAndIncrement();
         }
 
         executor.submit(() -> {
+            try {
+                executable.run();
+            } finally {
+                synchronized (pendingTasks) {
+                    if (pendingTasks.decrementAndGet() == 0) {
+                        shutdownCrawler();
+                    }
+                }
+            }
+        });
+    }
+
+    private void scheduleDownloadTask(DownloadTask task, File contentRoot, int maxDepth) {
+        scheduleAndTrackExecution(() -> {
             try {
                 List<DownloadTask> newTasks = runDownloadTask(task, contentRoot);
                 for (DownloadTask newTask : newTasks) {
@@ -67,12 +81,6 @@ public class WebCrawler {
                 }
             } catch (Exception e) {
                 reportLogger.log(task.webPath(), "Failed to download " + task.webPath() + ": " + e.getMessage());
-            } finally {
-                synchronized (pendingTasks) {
-                    if (pendingTasks.decrementAndGet() == 0) {
-                        shutdownCrawler();
-                    }
-                }
             }
         });
     }
