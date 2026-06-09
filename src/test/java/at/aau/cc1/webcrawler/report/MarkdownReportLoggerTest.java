@@ -24,7 +24,7 @@ public class MarkdownReportLoggerTest {
     public void testSimpleMessages(String message) {
         reportLogger.beginSection("sec", "Test Section", 1);
         reportLogger.log("sec", message);
-        reportLogger.finish();
+        assertDoesNotThrow(() -> reportLogger.finish());
 
         String output = reportLogger.getOutput().toString().split("\n")[1];
         assertEquals(message, output.trim());
@@ -37,7 +37,7 @@ public class MarkdownReportLoggerTest {
         for (int i = 1; i <= 3; i++) {
             reportLogger.log("sec", "Test #" + i);
         }
-        reportLogger.finish();
+        assertDoesNotThrow(() -> reportLogger.finish());
 
         String[] output = reportLogger.getOutput().toString().split("\n");
         for (int i = 1; i <= 3; i++) {
@@ -52,7 +52,7 @@ public class MarkdownReportLoggerTest {
         for (int i = 1; i <= 3; i++) {
             reportLogger.beginSection("s" + i, "Test Section #" + i, i);
         }
-        reportLogger.finish();
+        assertDoesNotThrow(() -> reportLogger.finish());
 
         String[] output = reportLogger.getOutput().toString().split("\n");
         for (int i = 1; i <= 2; i++) {
@@ -70,7 +70,7 @@ public class MarkdownReportLoggerTest {
         reportLogger.log("s2", "More text for #2");
         reportLogger.beginSection("s3", "Final test section", 1);
         reportLogger.log("s3", "Final test text");
-        reportLogger.finish();
+        assertDoesNotThrow(() -> reportLogger.finish());
 
         String output = reportLogger.getOutput().toString();
         assertEquals("""

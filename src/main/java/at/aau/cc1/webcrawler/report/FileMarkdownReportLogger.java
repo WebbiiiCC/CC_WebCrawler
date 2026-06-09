@@ -12,14 +12,12 @@ public class FileMarkdownReportLogger extends MarkdownReportLogger {
     private final File destinationFile;
 
     @Override
-    public void finish() {
+    public void finish() throws IOException {
         String markdownText = super.getOutput().toString();
 
         try (FileOutputStream fileStream = new FileOutputStream(destinationFile, true)) {
             fileStream.write(markdownText.getBytes(StandardCharsets.UTF_8));
             fileStream.flush();
-        } catch (IOException e) {
-            System.err.println("Failed to save markdown report: " + e.getMessage());
         }
     }
 }

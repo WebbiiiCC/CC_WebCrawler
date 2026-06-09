@@ -2,6 +2,8 @@ package at.aau.cc1.webcrawler.report;
 
 import lombok.RequiredArgsConstructor;
 
+import java.io.IOException;
+
 @RequiredArgsConstructor
 public class JointReportLogger implements ReportLogger {
     private final ReportLogger first, second;
@@ -19,7 +21,7 @@ public class JointReportLogger implements ReportLogger {
     }
 
     @Override
-    public void finish() {
+    public void finish() throws IOException {
         first.finish();
         second.finish();
     }

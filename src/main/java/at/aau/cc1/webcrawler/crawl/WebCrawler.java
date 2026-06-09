@@ -3,7 +3,6 @@ package at.aau.cc1.webcrawler.crawl;
 import at.aau.cc1.webcrawler.adapter.DocumentAdapter;
 import at.aau.cc1.webcrawler.adapter.ElementAdapter;
 import at.aau.cc1.webcrawler.adapter.ElementsAdapter;
-import at.aau.cc1.webcrawler.adapter.HttpStatusExceptionAdapter;
 import at.aau.cc1.webcrawler.fetch.DocumentFetcher;
 import at.aau.cc1.webcrawler.mapping.LinkMapper;
 import at.aau.cc1.webcrawler.report.ReportLogger;
@@ -44,9 +43,12 @@ public class WebCrawler {
 
     private void shutdownCrawler() {
         executor.shutdown();
-        reportLogger.finish();
-
-        future.complete(null);
+        try {
+            reportLogger.finish();
+            future.complete(null);
+        } catch (IOException e) {
+            future.completeExceptionally(e);
+        }
     }
 
     private void scheduleDownloadTask(DownloadTask task, File contentRoot, int maxDepth) {
